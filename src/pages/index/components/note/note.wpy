@@ -1,0 +1,114 @@
+<template>
+	<view
+		class="select-checkbox {{editing?'show':''}} {{selected?'selected':''}}"
+		value="selected"
+		catchtap="selectNote"
+		hover-class="select-checkbox-hover"
+	>
+		<mp-icon
+			class="delete-checkbox-mp-icon"
+			icon="done"
+			color="#fff"
+			size="{{18}}"
+		>
+		</mp-icon>
+	</view>
+	<view class="container">
+		<text class="title">{{ note.title }}</text>
+		<text class="text">{{ note.text }}</text>
+	</view>
+</template>
+
+<style lang="less">
+:host {
+	position: relative;
+	box-sizing: border-box;
+	margin: 23rpx 16rpx;
+	padding: 16rpx;
+	width: 218rpx;
+	height: 300rpx;
+	border: 1px solid #ddd;
+}
+
+.select-checkbox {
+	display: none;
+	position: absolute;
+	right: -15rpx;
+	top: -17rpx;
+	width: 48rpx;
+	height: 48rpx;
+	border-radius: 50%;
+	background-color: #ddd;
+}
+
+.select-checkbox.show {
+	display: block;
+}
+
+.select-checkbox.select-checkbox-hover {
+	opacity: 0.85;
+}
+
+.select-checkbox.selected {
+	background-color: #03dac5;
+}
+
+.delete-checkbox-mp-icon {
+	position: absolute;
+	top: -17rpx;
+	right: 5rpx;
+}
+
+.container {
+	display: -webkit-box;
+	word-break: break-all;
+	overflow: hidden;
+	-webkit-line-clamp: 4;
+	-webkit-box-orient: vertical;
+}
+
+.title {
+	display: -webkit-box;
+	font-weight: 600;
+	font-size: 36rpx;
+	color: #666;
+	overflow: hidden;
+	text-align: right;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+}
+
+.text {
+	font-size: 21rpx;
+}
+</style>
+
+<script>
+import wepy from '@wepy/core';
+
+wepy.component({
+	name: 'note',
+	props: {
+		note: Object,
+		editing: Boolean,
+		selected: Boolean
+	},
+	data: {},
+	methods: {
+		selectNote() {
+			this.$emit('selectNode', {
+				id: this.note.id,
+				selected: !this.selected
+			});
+		}
+	}
+});
+</script>
+
+<config>
+{
+  "usingComponents": {
+    "mp-icon": "module:weui-miniprogram/miniprogram_dist/icon/icon"
+  }
+}
+</config>

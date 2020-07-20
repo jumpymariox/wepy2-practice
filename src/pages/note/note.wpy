@@ -1,0 +1,228 @@
+<template>
+	<view class="container">
+		<form id="form" class="note-form" @submit="saveNote($event)">
+			<view class="note-cells">
+				<view class="note-input-cell">
+					<input
+						v-model="note.title"
+						name="title"
+						class="note-input"
+						maxlength="50"
+						data-field="title"
+						placeholder="标题"
+					/>
+				</view>
+				<view class="note-editor-cell">
+					<note-editor
+						id="noteEditor"
+						name="content"
+						class="note-editor"
+						defaultValue="{{note.content}}"
+					></note-editor>
+				</view>
+			</view>
+			<view class="button-container">
+				<button
+					formType="submit"
+					class="save-btn {{showSaveBtn?'show':''}}"
+					size="mini"
+				>
+					<mp-icon icon="done" color="#fff" size="{{26}}"></mp-icon>
+				</button>
+			</view>
+		</form>
+	</view>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import { noteService } from '../../services/noteService';
+
+wepy.page({
+	name: 'note',
+	data: {
+		isCreate: false,
+		showSaveBtn: true,
+		note: {}
+	},
+
+	/**
+	 * Lifecycle function--Called when page load
+	 */
+	onLoad: function (options) {
+		if (!options) {
+			return;
+		}
+		if (typeof options.id === 'string') {
+			wx.showLoading({ title: '加载中' });
+			this.isCreate = false;
+			noteService
+				.fetchNote(options.id)
+				.then(({ note }) => {
+					this.note = note;
+					this.id = this.note.id;
+					wx.hideLoading();
+				})
+				.catch(() => {
+					wx.hideLoading();
+				});
+		} else {
+			this.isCreate = true;
+		}
+	},
+	/**
+	 * Lifecycle function--Called when page is initially rendered
+	 */
+	onReady: function () {},
+
+	/**
+	 * Lifecycle function--Called when page show
+	 */
+	onShow: function () {},
+
+	/**
+	 * Lifecycle function--Called when page hide
+	 */
+	onHide: function () {},
+
+	/**
+	 * Lifecycle function--Called when page unload
+	 */
+	onUnload: function () {},
+
+	/**
+	 * Page event handler function--Called when user drop down
+	 */
+	onPullDownRefresh: function () {},
+
+	/**
+	 * Called when page reach bottom
+	 */
+	onReachBottom: function () {},
+
+	methods: {
+		async saveNote(e) {
+			let content = '';
+			let text = '';
+			await this.$wx
+				.selectComponent('#noteEditor')
+				.$wepy.getContents()
+				.then((editorContent) => {
+					content = editorContent.html;
+					text = editorContent.text;
+				});
+			const title = e.$wx.detail.value.title;
+
+			if (this.isCreate) {
+				this.createNote({ title, content, text });
+			} else if (this.note) {
+				const updatedNote = {
+					id: this.note.id,
+					content,
+					title,
+					text
+				};
+				this.updateNote(updatedNote);
+			}
+		},
+
+		createNote({ title, content, text }) {
+			if (!content && !title) {
+				return;
+			}
+			noteService.createNote({ title, content, text }).then(() => {
+				wx.navigateBack();
+			});
+		},
+
+		updateNote(note) {
+			const { title, content } = note;
+			if (!content && !title) {
+				return;
+			}
+			noteService.updateNote(note).then(() => {
+				wx.navigateBack();
+			});
+		}
+	}
+});
+</script>
+
+<style lang="less">
+.container {
+	position: absolute;
+	top: 20rpx;
+	bottom: 20rpx;
+	left: 20rpx;
+	right: 20rpx;
+	box-shadow: 0 1rpx 2rpx 4rpx #ddd;
+}
+
+.note-form {
+	display: block;
+	height: 100%;
+}
+
+.note-cells {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+}
+
+.note-input-cell {
+	height: 100rpx;
+}
+
+.note-input-cell > .note-input {
+	padding: 0 20rpx;
+	height: 100%;
+	font-size: 50rpx;
+}
+
+.note-editor-cell {
+	height: calc(100% - 100rpx);
+}
+
+.note-editor-cell > .note-editor {
+	height: 100%;
+}
+
+.button-container {
+	position: fixed;
+	right: 40rpx;
+	bottom: 60rpx;
+}
+
+.button-container > button {
+	display: none;
+	justify-content: center;
+	align-content: center;
+	border-radius: 50%;
+	width: 100rpx;
+	height: 100rpx;
+	overflow: hidden;
+	box-shadow: 2rpx 2rpx 2rpx 2rpx #ddd;
+}
+
+.button-container > button.show {
+	display: flex;
+}
+
+.save-btn {
+	background: #03dac5;
+}
+
+.weui-icon {
+	margin-top: 24rpx;
+}
+</style>
+
+<config>
+{
+  "usingComponents": {
+    "note-editor": "./components/note-editor/note-editor",
+    "mp-icon": "module:weui-miniprogram/miniprogram_dist/icon/icon"
+  }
+}
+
+</config>

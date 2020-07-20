@@ -1,0 +1,90 @@
+<template>
+	<note
+		wx:for="{{notes}}"
+		id="{{item.id}}"
+		note="{{item}}"
+		editing="{{editing}}"
+		selected="{{selectedNoteMap[item.id]}}"
+		@tap="redirectToNotePage($event)"
+		@longpress="readyToEditNotes"
+		bind:selectNode="selectNode($event)"
+	>
+	</note>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import keys from 'lodash.keys';
+import pickBy from 'lodash.pickby';
+
+wepy.component({
+	name: 'note-list',
+	props: {
+		editing: {
+			type: Boolean,
+			default: false
+		},
+		notes: {
+			type: Array,
+			default: []
+		}
+	},
+	data: {
+		selectedNoteMap: {}
+	},
+	watch: {
+		editing() {
+			this.selectedNoteMap = {};
+		}
+	},
+	methods: {
+		redirectToNotePage(event) {
+			const noteId = event.currentTarget.id;
+			wx.navigateTo({ url: `/pages/note/note?id=${noteId}` });
+		},
+		readyToEditNotes() {
+			if (this.editing) {
+				return;
+			}
+			this.$emit('readyToEditNotes');
+		},
+		selectNode(e) {
+			const { id, selected } = e;
+			this.selectedNoteMap = {
+				...this.selectedNoteMap,
+				[id]: selected
+			};
+			const selectedNoteIds = keys(
+				pickBy(this.selectedNoteMap, (value) => !!value)
+			);
+			this.$emit('selectedNotesChange', {
+				selectedNoteIds: selectedNoteIds
+			});
+		}
+	},
+
+	lifetimes: {
+		attached() {}
+	}
+});
+</script>
+
+<style lang="less">
+:host {
+	display: block;
+	width: 100%;
+}
+
+:host {
+	display: flex;
+	flex-wrap: wrap;
+}
+</style>
+
+<config>
+{
+  "usingComponents": {
+    "note":"./../note/note"
+  }
+}
+</config>

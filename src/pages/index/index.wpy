@@ -1,0 +1,195 @@
+<style lang="less">
+/**index.wxss**/
+.button-container {
+	position: fixed;
+	right: 26rpx;
+	bottom: 26rpx;
+}
+
+.button-container > button {
+	display: none;
+	justify-content: center;
+	align-content: center;
+	border-radius: 50%;
+	width: 100rpx;
+	height: 100rpx;
+	overflow: hidden;
+	box-shadow: 2rpx 2rpx 2rpx 2rpx #ddd;
+}
+
+.button-container > button.show {
+	display: flex;
+}
+
+.add-btn {
+	background: #03dac5;
+}
+
+.delete-btn {
+	margin-top: 26rpx;
+	background: orange;
+}
+
+.undo-btn {
+	background: #fe8bc1;
+}
+
+button.button-hover {
+	opacity: 0.85;
+}
+
+.weui-icon {
+	margin-top: 24rpx;
+}
+</style>
+
+<template>
+	<view>
+		<scroll-view
+			scroll-y="true"
+			style="height: 100%;"
+			@scrolltoupper="upper"
+		>
+			<note-list
+				notes="{{notes}}"
+				editing="{{editing}}"
+				bind:readyToEditNotes="readyToEditNotes"
+				bind:selectedNotesChange="selectedNotesChange($event)"
+			></note-list>
+		</scroll-view>
+
+		<view class="button-container">
+			<button
+				class="add-btn {{showAddBtn?'show':''}}"
+				size="mini"
+				@tap="createNote"
+			>
+				<mp-icon icon="add" color="#fff" size="{{26}}"></mp-icon>
+			</button>
+
+			<button
+				class="undo-btn {{showUndoBtn?'show':''}}"
+				size="mini"
+				@tap="cancelEditNotes"
+			>
+				<mp-icon icon="previous" color="#fff" size="{{26}}"></mp-icon>
+			</button>
+
+			<button
+				class="delete-btn {{showDeleteBtn?'show':''}}"
+				size="mini"
+				@tap="deleteNotes"
+			>
+				<mp-icon icon="delete" color="#fff" size="{{26}}"></mp-icon>
+			</button>
+		</view>
+	</view>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import store from '../../store';
+import { noteService } from '../../services/noteService';
+
+wepy.page({
+	store,
+
+	config: {
+		navigationBarTitleText: 'test'
+	},
+
+	hooks: {},
+
+	mixins: [],
+
+	computed: {},
+
+	methods: {
+		createNote() {
+			wx.navigateTo({ url: '/pages/note/note' });
+		},
+		readyToEditNotes() {
+			this.showAddBtn = false;
+			this.showDeleteBtn = true;
+			this.showUndoBtn = true;
+			this.editing = true;
+		},
+		cancelEditNotes() {
+			this.showAddBtn = true;
+			this.showDeleteBtn = false;
+			this.showUndoBtn = false;
+			this.editing = false;
+		},
+		deleteNotes() {
+			this.cancelEditNotes();
+			noteService.deleteNotes(this.selectedNoteIds).then(() => {
+				this.fetchAndSetNotes();
+			});
+		},
+		selectedNotesChange(e) {
+			this.selectedNoteIds = e.selectedNoteIds;
+		},
+		fetchAndSetNotes() {
+			wx.showLoading({ title: '加载中' });
+			return new Promise((resolve, reject) => {
+				noteService
+					.fetchNotes()
+					.then(({ notes }) => {
+						this.notes = notes;
+						wx.hideLoading();
+						resolve();
+					})
+					.catch(() => {
+						wx.hideLoading();
+						wx.showToast({
+							title: '网络出小差了\\o(╯□╰)o/ ',
+							duration: 5000,
+							icon: 'none'
+						});
+						// eslint-disable-next-line prefer-promise-reject-errors
+						reject();
+					});
+			});
+		}
+	},
+
+	data: {
+		showAddBtn: true,
+		showDeleteBtn: false,
+		showUndoBtn: false,
+		editing: false,
+		notes: [],
+		selectedNoteIds: []
+	},
+
+	onLoad() {},
+	onShow() {
+		this.fetchAndSetNotes();
+	},
+
+	created() {
+		let self = this;
+		self.currentTime = +new Date();
+
+		self.setTimeoutTitle = '标题三秒后会被修改';
+		setTimeout(() => {
+			self.setTimeoutTitle = '到三秒了';
+		}, 3000);
+
+		wx.getUserInfo({
+			success(res) {
+				self.userInfo = res.userInfo;
+			}
+		});
+	}
+});
+</script>
+
+<config>
+{
+    usingComponents: {
+      'note-list': './components/note-list/note-list',
+      'mp-icon': "module:weui-miniprogram/miniprogram_dist/icon/icon"
+  }
+}
+</config>

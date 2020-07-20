@@ -1,0 +1,15 @@
+{
+	"singleQuote": true,
+	"tabWidth": 4,
+	"useTabs": true,
+	"semi": true,
+	"trailingComma": "none",
+	"overrides": [
+		{
+			"files": ["*.wpy"],
+			"options": {
+				"parser": "vue"
+			}
+		}
+	]
+}
