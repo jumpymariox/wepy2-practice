@@ -26,6 +26,7 @@ npm run serve
 1. 自动转义大部分html标签，且同时兼容小程序标签，对web开发人员友好；
 2. 吸收vue优秀的template语法设计和值检测机制；
 3. 全局hook对调试log有一定帮助；
+4. 支持vuex；
 
 关于目前踩过的坑：
 1. 组件的data，vue是function，wepy文档上是object，实际上function也可以；
