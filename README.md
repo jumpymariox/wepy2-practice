@@ -18,6 +18,7 @@ npm run dev
 npm run serve
 ```
 启动完成后，使用微信小程序开发ide导入项目即可预览应用；
+如在小程序预览无数据，请手动勾选小程序开发ide中的免验证https请求；
 ### 补充
 手机微信小程序预览请修改noteService中的domain为本机ip，并保证手机与本机连接统一网络。
 
